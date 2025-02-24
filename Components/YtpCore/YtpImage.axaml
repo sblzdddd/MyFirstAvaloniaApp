@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           mc:Ignorable="d" d:DesignWidth="256" d:DesignHeight="256"
+           Canvas.Left="0" Canvas.Top="0"
+           x:Class="MyFirstAvaloniaApp.Components.YtpCore.YtpImage" >
+  <UserControl.Styles>
+    <Style Selector="Canvas.Triggered Border">
+      <Style.Animations>
+        <Animation Duration="{Binding AnimationDuration}"
+                   IterationCount="1"
+                   PlaybackDirection="Normal"
+                   Easing="ExponentialEaseOut"
+                   FillMode="Forward">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="{Binding OpacityStart}"/>
+            <Setter Property="Canvas.Left" Value="{Binding StartX}"/>
+            <Setter Property="Canvas.Top" Value="{Binding StartY}"/>
+            <Setter Property="CornerRadius" Value="{Binding BorderRadiusStart}"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="{Binding OpacityEnd}"/>
+            <Setter Property="Canvas.Left" Value="{Binding EndX}"/>
+            <Setter Property="Canvas.Top" Value="{Binding EndY}"/>
+            <Setter Property="CornerRadius" Value="{Binding BorderRadiusEnd}"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <Style Selector="Canvas.Triggered Image">
+      <Style.Animations>
+        <Animation Duration="{Binding AnimationDuration}"
+                   IterationCount="1"
+                   PlaybackDirection="Normal"
+                   Easing="ExponentialEaseOut"
+                   FillMode="Forward">
+          <KeyFrame Cue="0%">
+            <Setter Property="ScaleTransform.ScaleX" Value="{Binding ScaleXStart}" />
+            <Setter Property="ScaleTransform.ScaleY" Value="{Binding ScaleYStart}" />
+            <Setter Property="RotateTransform.Angle" Value="{Binding RotateStart}" />
+            <Setter Property="Opacity" Value="{Binding OpacityStart}"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="ScaleTransform.ScaleX" Value="{Binding ScaleXEnd}" />
+            <Setter Property="ScaleTransform.ScaleY" Value="{Binding ScaleYEnd}" />
+            <Setter Property="RotateTransform.Angle" Value="{Binding RotateEnd}" />
+            <Setter Property="Opacity" Value="{Binding OpacityEnd}"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+  <Canvas Classes.Triggered="{Binding AnimationOn}"
+          Width="{Binding CWidth}" 
+          Height="{Binding CHeight}"
+          IsHitTestVisible="False">
+    <Border Width="{Binding GWidth}"
+            Height="{Binding GHeight}"
+            Canvas.Left="{Binding EndX}"
+            Canvas.Top="{Binding EndY}"
+            Opacity="{Binding OpacityEnd}"
+            CornerRadius="20" 
+            ClipToBounds="True"
+    >
+      <Border.Effect>
+        <DropShadowEffect BlurRadius="0"
+                          Opacity="0.3"
+                          OffsetX="5"
+                          OffsetY="5" />
+      </Border.Effect>
+      <Image x:Name="YtpmvImg"
+             RotateTransform.Angle="{Binding RotateEnd}"
+             Stretch="UniformToFill">
+      </Image>
+    </Border>
+  </Canvas>
+</UserControl>
