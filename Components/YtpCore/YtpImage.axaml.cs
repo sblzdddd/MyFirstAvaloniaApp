@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
@@ -8,9 +7,11 @@ using Avalonia;
 using Avalonia.Media.Imaging;
 using MyFirstAvaloniaApp.Components.YtpCore.Midi;
 using MyFirstAvaloniaApp.misc;
+using Avalonia.Controls;
 
 namespace MyFirstAvaloniaApp.Components.YtpCore;
 
+// 暂时没用
 public class BasicTransformEvent {
     public List<double> Position = [100, 100];
     public double Rotation = 2;
@@ -22,6 +23,8 @@ public partial class YtpImage : YtpComponentBase
 {
     public readonly MidiDriver MidiDriver;
     private CancellationTokenSource? _playbackCts;
+    private readonly bool _isOverlay;
+    private static int _zIndex;
     
     public static readonly StyledProperty<string> ImageSourceProperty =
         AvaloniaProperty.Register<YtpImage, string>(nameof(ImageSource));
@@ -37,7 +40,11 @@ public partial class YtpImage : YtpComponentBase
             }
         }
     }
-    public YtpImage(string midiPath, int width=320, int height=200, double latency=0)
+    public override bool IsOverlay
+    {
+        get => _isOverlay;
+    }
+    public YtpImage(string midiPath, int width=320, int height=200, double latency=0, bool isOverlay=false)
     {
         Width = Viewport.GetWindowSize().Width;
         Height = Viewport.GetWindowSize().Height;
@@ -45,49 +52,61 @@ public partial class YtpImage : YtpComponentBase
         CHeight = Height;
         GWidth = width;
         GHeight = height;
+        _isOverlay = isOverlay;
         
         InitializeComponent();
         MidiDriver = new MidiDriver(latency);
         MidiDriver.Load(midiPath);
         DataContext = this;
         MidiDriver.OnNoteOn += TriggerAnimation;
+        MidiDriver.OnPlayEnd += PlayEnd;
     }
     
-    public void Play()
+    public override void Play()
     {
-        // Cancel any existing playback
         _playbackCts?.Cancel();
         
-        // Create new cancellation token source
         _playbackCts = new CancellationTokenSource();
         Task.Run(() => MidiDriver.Play(_playbackCts.Token));
     }
 
-    public void Stop()
+    public override void Stop()
     {
-        // Cancel any existing playback
         _playbackCts?.Cancel();
     }
-
-    // Assuming your Image has x:Name="MyImage"
-    public void TriggerAnimation(double timeMs, int note, int velocity)
+    public async void PlayEnd(double timeMs)
     {
-        // Post to UI thread to avoid freezing
-        Dispatcher.UIThread.Post(async void () =>
+        if (_isOverlay)
         {
-            try
+            await Task.Delay(100); // Add 100ms delay
+            
+            Dispatcher.UIThread.Post(() =>
             {
-                AnimationOn = false;
-                ScaleXStart = -ScaleXStart;
-                ScaleXEnd = -ScaleXEnd;
-                RotateStart = -RotateStart;
-                await Task.Delay(10);
+                // overlay播放完毕隐藏
+                OpacityEnd = 0;
                 AnimationOn = true;
-            }
-            catch (Exception e)
+            });
+        }
+    }
+
+    public override void TriggerAnimation(double timeMs, int note, int velocity)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            // 翻转
+            AnimationOn = false;
+            ScaleXStart = -ScaleXStart;
+            ScaleXEnd = -ScaleXEnd;
+            RotateStart = -RotateStart;
+            
+            // overlay声成在最前面
+            if (_isOverlay)
             {
-                throw; // TODO handle exception
+                _zIndex++;
+                SetValue(ZIndexProperty, _zIndex);
             }
+            
+            AnimationOn = true;
         }, DispatcherPriority.Background);
     }
 }

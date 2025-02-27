@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using MidiParser;
+using System.Collections.Generic;
 
 namespace MyFirstAvaloniaApp.Components.YtpCore.Midi;
 
@@ -13,12 +14,13 @@ public class MidiDriver
     private Stopwatch _stopwatch = new();
     private string _path = "Assets/midi/lead.mid";
     
-    // Add this delegate definition
     public delegate void NoteOnEventHandler(double timeMs, int note, int velocity);
+    public delegate void NoteOffEventHandler(double timeMs, int note, int velocity);
+    public delegate void PlayEndEventHandler(double timeMs);
     
-    // Add this event or Action property
     public event NoteOnEventHandler? OnNoteOn;
-    // Alternative using Action: public Action<double, int, int>? OnNoteOn;
+    public event NoteOffEventHandler? OnNoteOff;
+    public event PlayEndEventHandler? OnPlayEnd;
 
     public double Latency;
 
@@ -58,44 +60,55 @@ public class MidiDriver
         _stopwatch = new Stopwatch();
         var midiFile = new MidiFile(_path);
         
-        // Calculate microseconds per tick
         double microsecondsPerQuarterNote = (60.0 * 1_000_000) / _bpm;
         double microsecondsPerTick = microsecondsPerQuarterNote / _ticksPerQuarterNote;
         
         _stopwatch.Start();
         
+        // Pre-calculate all event timings
+        var events = new List<(long targetMicroseconds, MidiEvent midiEvent)>();
         foreach (var track in midiFile.Tracks)
         {
             foreach (var midiEvent in track.MidiEvents)
             {
-                if (cancellationToken.IsCancellationRequested)
+                if (midiEvent.MidiEventType == MidiEventType.NoteOn)
                 {
-                    _stopwatch.Stop();
-                    return;
+                    events.Add(((long)(midiEvent.Time * microsecondsPerTick), midiEvent));
                 }
+            }
+        }
+        
+        // Sort events by time
+        events.Sort((a, b) => a.targetMicroseconds.CompareTo(b.targetMicroseconds));
+        
+        foreach (var (targetMicroseconds, midiEvent) in events)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _stopwatch.Stop();
+                return;
+            }
 
-                // Calculate when this event should trigger
-                long targetMicroseconds = (long)(midiEvent.Time * microsecondsPerTick);
-                
-                // Wait until it's time to play this event
-                while (_stopwatch.ElapsedTicks * 1_000_000L / Stopwatch.Frequency - Latency < targetMicroseconds)
+            long currentMicros;
+            while ((currentMicros = _stopwatch.ElapsedTicks * 1_000_000L / Stopwatch.Frequency) - Latency < targetMicroseconds)
+            {
+                if (targetMicroseconds - currentMicros > 1000)
                 {
                     await Task.Delay(1, cancellationToken);
                 }
-
-                if (midiEvent.MidiEventType != MidiEventType.NoteOn) continue;
-                double currentTimeMs = _stopwatch.ElapsedMilliseconds;
-                
-                // Keep the console output for debugging
-                Console.WriteLine($"{_path}: NoteOn at {currentTimeMs:F2}ms - Note: {midiEvent.Arg2}, Velocity: {midiEvent.Arg3}");
-                
-                // Call the callback function if it's set
-                OnNoteOn?.Invoke(currentTimeMs, midiEvent.Arg2, midiEvent.Arg3);
-                
+                else
+                {
+                    Thread.SpinWait(10);
+                }
             }
+
+            double currentTimeMs = _stopwatch.ElapsedMilliseconds;
+            OnNoteOn?.Invoke(currentTimeMs, midiEvent.Arg2, midiEvent.Arg3);
+            Console.WriteLine("NoteOn: {0}", midiEvent.Arg2);
         }
         
         _stopwatch.Stop();
         Console.WriteLine("Playback of {0} Completed.", _path);
+        OnPlayEnd?.Invoke(_stopwatch.ElapsedMilliseconds);
     }
 }

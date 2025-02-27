@@ -7,34 +7,40 @@
         x:Class="MyFirstAvaloniaApp.MainWindow"
         Title="Audio Player"
         ExtendClientAreaChromeHints="NoChrome"
-        TransparencyLevelHint="AcrylicBlur"
+        TransparencyLevelHint="{Binding TransparencyLevelHint}"
         Background="Transparent"
+        UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen"
         ExtendClientAreaToDecorationsHint="True">
-    
-    <Canvas x:Name="ImageContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Canvas.Bottom="0" Canvas.Left="10">
-            <Button x:Name="PlayButton"
-                    avalonia:Attached.Icon="fa-solid fa-play"
-                    Click="PlayButton_Click"
-                    Margin="0,0,5,0"/>
-            <Button x:Name="PauseButton" 
-                    avalonia:Attached.Icon="fa-solid fa-pause"
-                    Click="PauseButton_Click"
-                    Margin="0,0,5,0"/>
-            <Button x:Name="StopButton" 
-                    avalonia:Attached.Icon="fa-solid fa-stop"
-                    Click="StopButton_Click"
-                    Margin="0,0,5,0"/>
-            <TextBlock x:Name="TimeDisplay"
-                       Text="[REALTIME] / [AUDIOTIME] / [TOTAL TIME]"
+        <Canvas x:Name="ImageContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+          <StackPanel x:Name="BlackOverlay" Background="Black" Canvas.Left="0" Canvas.Top="0" Width="1024" Height="576" ZIndex="99995">
+          </StackPanel>
+                <Border Background="#50FFFFFF" Padding="10" Canvas.Bottom="0" Canvas.Left="0" ZIndex="99999" CornerRadius="5">
+                  <StackPanel Orientation="Horizontal">
+                    <Button x:Name="PlayButton"
+                            avalonia:Attached.Icon="fa-solid fa-play"
+                            Click="PlayButton_Click"
+                            Margin="0,0,5,0"/>
+                    <Button x:Name="PauseButton" 
+                            avalonia:Attached.Icon="fa-solid fa-pause"
+                            Click="PauseButton_Click"
+                            Margin="0,0,5,0"/>
+                    <Button x:Name="StopButton" 
+                            avalonia:Attached.Icon="fa-solid fa-stop"
+                            Click="StopButton_Click"
+                            Margin="0,0,5,0"/>
+                    <TextBlock x:Name="TimeDisplay"
+                               Text="[REALTIME] / [AUDIOTIME] / [TOTAL TIME]"
+                               HorizontalAlignment="Center"
+                               Margin="0,7,0,0"/>
+                  </StackPanel>
+                </Border>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Canvas.Bottom="0" Canvas.Right="10">
+            <TextBlock x:Name="Version"
+                       Text="V0.5"
                        HorizontalAlignment="Center"
                        Margin="0,7,0,0"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Canvas.Bottom="0" Canvas.Right="10">
-          <TextBlock x:Name="Version"
-                     Text="V0.5"
-                     HorizontalAlignment="Center"
-                     Margin="0,7,0,0"/>
-        </StackPanel>
+          </StackPanel>
+      
     </Canvas>
 </Window>

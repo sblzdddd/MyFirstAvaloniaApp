@@ -6,6 +6,7 @@
         <entry key="App.axaml" value="MyFirstAvaloniaApp.csproj" />
         <entry key="Components/YtpCore/YtpImage.axaml" value="MyFirstAvaloniaApp.csproj" />
         <entry key="Components/YtpCore/YtpOverlayImage.axaml" value="MyFirstAvaloniaApp.csproj" />
+        <entry key="Components/YtpCore/YtpVideo.axaml" value="MyFirstAvaloniaApp.csproj" />
         <entry key="DynamicImage.axaml" value="MyFirstAvaloniaApp.csproj" />
         <entry key="MainWindow.axaml" value="MyFirstAvaloniaApp.csproj" />
       </map>

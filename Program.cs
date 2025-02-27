@@ -23,7 +23,7 @@ class Program
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .With(new SkiaOptions() { MaxGpuResourceSizeBytes = 3000000000 })
+            .With(new SkiaOptions() { MaxGpuResourceSizeBytes = 3000000000 }) // 奇异搞笑显存
             .LogToTrace();
     }
 
